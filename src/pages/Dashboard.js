@@ -2,7 +2,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
-import AuthContext from '../context/AuthContext';
+import { AuthContext } from '../context/AuthContext';
+import { DiscountContext } from '../context/DiscountContext';
+import DiscountMeter from '../components/DiscountMeter';
+import DiscountBanner from '../components/DiscountBanner';
+import '../components/DiscountMeter.css';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -10,9 +14,10 @@ const Dashboard = () => {
   const [streakCount, setStreakCount] = useState(0);
   const [points, setPoints] = useState(0);
   
-  // Use the offline and auth contexts
+  // Use the offline, auth, and discount contexts
   const { offlineCourses } = useContext(OfflineContext);
   const { currentUser } = useContext(AuthContext);
+  const { discountStatus, fetchDiscountStatus } = useContext(DiscountContext);
   
   // Fetch user progress data from the API
   useEffect(() => {
@@ -25,6 +30,9 @@ const Dashboard = () => {
           const profileData = await userAPI.getProfile();
           setStreakCount(profileData.user.streakCount);
           setPoints(profileData.user.points);
+          
+          // Refresh discount status
+          await fetchDiscountStatus();
         }
         
         // Fetch user progress
@@ -38,10 +46,11 @@ const Dashboard = () => {
     };
     
     fetchUserData();
-  }, [currentUser]);
+  }, [currentUser, fetchDiscountStatus]);
   
   return (
     <div className="dashboard">
+      <DiscountBanner />
       <h1>Your Learning Dashboard</h1>
       
       <div className="stats-container">
@@ -56,11 +65,27 @@ const Dashboard = () => {
         
         <div className="card stat-card">
           <div className="stat-value">{points}</div>
-          <div className="stat-label">Total Points</div>
+          <div className="stat-label">Points</div>
           <div className="progress-container">
-            <div className="progress-bar" style={{ width: `${Math.min(points / 2, 100)}%` }}></div>
+            <div className="progress-bar" style={{ width: `${Math.min(points / 10, 100)}%` }}></div>
           </div>
-          <p>Earn points by completing lessons and downloading courses</p>
+        </div>
+        
+        {/* Discount Card */}
+        <div className="card stat-card discount-card">
+          {discountStatus.loading ? (
+            <div className="loading">Loading discount info...</div>
+          ) : discountStatus.hasActiveDiscount ? (
+            <DiscountMeter courseId={discountStatus.activeCourseDiscount?.courseId} />
+          ) : discountStatus.nextCourseDiscount > 0 ? (
+            <DiscountMeter />
+          ) : (
+            <div className="discount-info">
+              <div className="stat-value">30%</div>
+              <div className="stat-label">Potential Discount</div>
+              <p className="discount-explainer">Start a course to earn up to 30% off your next purchase!</p>
+            </div>
+          )}
         </div>
         
         <div className="card stat-card">

@@ -32,6 +32,17 @@ const UserSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  nextCourseDiscount: {
+    type: Number,
+    default: 0,
+    min: 0,
+    max: 30
+  },
+  activeCourseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    default: null
+  },
   lastActive: {
     type: Date,
     default: Date.now

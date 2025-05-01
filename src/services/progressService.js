@@ -201,22 +201,41 @@ export const saveCourseOffline = async (course) => {
 // Get offline courses
 export const getOfflineCourses = async () => {
   try {
+    console.log('Attempting to get all courses from IndexedDB...');
     const courses = await idb.getAllItems('courses');
+    console.log(`Retrieved ${courses.length} courses from IndexedDB:`, courses);
+    
+    console.log('Attempting to get all progress entries from IndexedDB...');
     const progressEntries = await idb.getAllItems('userProgress');
+    console.log(`Retrieved ${progressEntries.length} progress entries from IndexedDB:`, progressEntries);
+    
+    // Check if courses is valid
+    if (!Array.isArray(courses)) {
+      console.error('Courses is not an array:', courses);
+      return [];
+    }
     
     // Merge course data with progress data
-    return courses.map(course => {
-      const progress = progressEntries.find(p => p.courseId === course._id) || { 
+    const mergedCourses = courses.map(course => {
+      if (!course || !course._id) {
+        console.warn('Found invalid course in IndexedDB:', course);
+        return null;
+      }
+      
+      const progress = progressEntries.find(p => p && p.courseId === course._id) || { 
         completedLessons: [], 
         progress: 0 
       };
       
       return {
         ...course,
-        completedLessons: progress.completedLessons,
-        progress: progress.progress
+        completedLessons: progress.completedLessons || [],
+        progress: progress.progress || 0
       };
-    });
+    }).filter(course => course !== null); // Remove any null entries
+    
+    console.log(`Returning ${mergedCourses.length} merged offline courses`);
+    return mergedCourses;
   } catch (error) {
     console.error('Error getting offline courses:', error);
     return [];

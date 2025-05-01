@@ -36,6 +36,9 @@ export const OfflineProvider = ({ children }) => {
     // Initial load of offline courses
     loadOfflineCourses();
     
+    // Set the initial online status
+    setIsOnline(navigator.onLine);
+    
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -44,8 +47,16 @@ export const OfflineProvider = ({ children }) => {
   
   // Load offline courses from IndexedDB
   const loadOfflineCourses = async () => {
-    const courses = await progressService.getOfflineCourses();
-    setOfflineCourses(courses);
+    try {
+      console.log('Loading offline courses from IndexedDB...');
+      const courses = await progressService.getOfflineCourses();
+      console.log(`Found ${courses.length} offline courses:`, courses);
+      setOfflineCourses(courses);
+    } catch (error) {
+      console.error('Error loading offline courses:', error);
+      // Provide a fallback empty array to avoid undefined issues
+      setOfflineCourses([]);
+    }
   };
   
   // Download a course for offline use

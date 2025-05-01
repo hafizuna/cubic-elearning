@@ -60,6 +60,15 @@ const CourseSchema = new mongoose.Schema({
     enum: ['Beginner', 'Intermediate', 'Advanced'],
     default: 'Beginner'
   },
+  price: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  purchasedBy: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   published: {
     type: Boolean,
     default: false

@@ -35,6 +35,50 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// @route   POST /api/courses/:id/purchase
+// @desc    Purchase a course
+// @access  Private
+router.post('/:id/purchase', auth, async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    // Check if user has already purchased this course
+    if (course.purchasedBy.includes(req.user._id)) {
+      return res.status(400).json({ message: 'You have already purchased this course' });
+    }
+    
+    // Add user to purchasedBy array
+    course.purchasedBy.push(req.user._id);
+    await course.save();
+    
+    // Add points to user for purchasing a course
+    req.user.points += 20;
+    await req.user.save();
+    
+    res.json({ message: 'Course purchased successfully', course });
+  } catch (error) {
+    console.error('Purchase course error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/courses/user/purchased
+// @desc    Get all courses purchased by the user
+// @access  Private
+router.get('/user/purchased', auth, async (req, res) => {
+  try {
+    const courses = await Course.find({ purchasedBy: req.user._id }).select('-lessons.content');
+    res.json(courses);
+  } catch (error) {
+    console.error('Get purchased courses error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // @route   POST /api/courses/:id/download
 // @desc    Mark a course as downloaded for a user
 // @access  Private
@@ -44,6 +88,13 @@ router.post('/:id/download', auth, async (req, res) => {
     
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    // Check if user has purchased this course
+    const hasPurchased = course.purchasedBy.includes(req.user._id.toString());
+    
+    if (!hasPurchased) {
+      return res.status(403).json({ message: 'You must purchase this course before downloading it' });
     }
     
     // Check if user already has this course

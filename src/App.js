@@ -5,6 +5,7 @@ import './App.css';
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
+import DiscountBanner from './components/DiscountBanner';
 import NetworkStatus from './components/NetworkStatus';
 import NotificationManager, { showNotification } from './components/NotificationManager';
 import AdminRoute from './components/AdminRoute';
@@ -15,6 +16,7 @@ import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -24,6 +26,7 @@ import LessonManager from './pages/admin/LessonManager';
 // Context
 import AuthContext, { AuthProvider } from './context/AuthContext';
 import OfflineContext, { OfflineProvider } from './context/OfflineContext';
+import DiscountContext, { DiscountProvider } from './context/DiscountContext';
 
 // API Services
 import { coursesAPI, userAPI } from './services/api';
@@ -36,6 +39,7 @@ function AppContent() {
   
   const { currentUser, loading } = useContext(AuthContext);
   const { isOnline, offlineCourses, downloadCourse, completeLesson } = useContext(OfflineContext);
+  const { discountStatus, checkConsistency } = useContext(DiscountContext);
 
   // This effect is now handled by OfflineContext
   
@@ -123,15 +127,20 @@ function AppContent() {
       <NotificationManager />
       <div className="app-content">
         <NetworkStatus isOnline={isOnline} />
-        {currentUser && <Header streakCount={streakCount} points={points} />}
-      
+        {currentUser && (
+          <Header 
+            streakCount={currentUser.streakCount || 0} 
+            points={currentUser.points || 0} 
+          />
+        )}
         <main className={`main-content ${!currentUser ? 'auth-main' : ''}`}>
+          {currentUser && <DiscountBanner />}
         <Routes>
           <Route path="/login" element={
             !currentUser ? <Login /> : <Navigate to="/" />
           } />
           <Route path="/register" element={
-            !currentUser ? <Register /> : <Navigate to="/" />
+            !currentUser ? <Register /> : <Navigate to="/login" />
           } />
           <Route path="/" element={
             currentUser ? (
@@ -146,6 +155,11 @@ function AppContent() {
           <Route path="/courses/:id" element={
             currentUser ? (
               <CourseDetail />
+            ) : <Navigate to="/login" />
+          } />
+          <Route path="/profile" element={
+            currentUser ? (
+              <Profile />
             ) : <Navigate to="/login" />
           } />
           
@@ -184,7 +198,9 @@ function App() {
     <Router>
       <AuthProvider>
         <OfflineProvider>
-          <AppContent />
+          <DiscountProvider>
+            <AppContent />
+          </DiscountProvider>
         </OfflineProvider>
       </AuthProvider>
     </Router>

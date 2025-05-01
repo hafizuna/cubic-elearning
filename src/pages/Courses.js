@@ -2,41 +2,119 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { coursesAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
+import { DiscountContext } from '../context/DiscountContext';
+import { showNotification } from '../components/NotificationManager';
+import DiscountBanner from '../components/DiscountBanner';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
+  const [purchasedCourses, setPurchasedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Use the offline context
+  // Use the offline and discount contexts
   const { isOnline, offlineCourses, downloadCourse, removeOfflineCourse, isDownloading } = useContext(OfflineContext);
+  const { discountStatus, applyDiscountToPurchase } = useContext(DiscountContext);
 
-  // Fetch courses from API
+  // Fetch courses from API or use offline courses
   useEffect(() => {
-    const fetchCourses = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const courses = await coursesAPI.getAllCourses();
-        setCourses(courses);
+        
+        if (isOnline) {
+          // If online, fetch from API
+          console.log('Online: Fetching courses from API');
+          const [coursesData, purchasedCoursesData] = await Promise.all([
+            coursesAPI.getAllCourses(),
+            coursesAPI.getPurchasedCourses()
+          ]);
+          
+          setCourses(coursesData);
+          setPurchasedCourses(purchasedCoursesData);
+        } else {
+          // If offline, use the offline courses from context
+          console.log('Offline: Using courses from IndexedDB', offlineCourses);
+          setCourses(offlineCourses);
+          // All offline courses are considered purchased
+          setPurchasedCourses(offlineCourses);
+          
+          if (offlineCourses.length === 0) {
+            setError('No courses available offline. Please connect to the internet to download courses.');
+          }
+        }
       } catch (err) {
         console.error('Error fetching courses:', err);
-        setError('Failed to load courses. Please try again later.');
+        
+        if (!isOnline && offlineCourses.length > 0) {
+          // If offline but we have offline courses, use them
+          setCourses(offlineCourses);
+          setPurchasedCourses(offlineCourses);
+        } else {
+          setError('Failed to load courses. Please try again later.');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCourses();
-  }, []);
+    fetchData();
+  }, [isOnline, offlineCourses]);
   const [actionInProgress, setActionInProgress] = useState(false);
 
+  const handlePurchase = async (course) => {
+    if (isOnline) {
+      try {
+        setActionInProgress(true);
+        
+        // Check if user has a discount to apply
+        let discountApplied = false;
+        let finalPrice = course.price || 0;
+        
+        if (discountStatus.nextCourseDiscount > 0) {
+          // Apply discount to purchase
+          const discountResult = await applyDiscountToPurchase(course._id);
+          
+          if (discountResult.success) {
+            discountApplied = true;
+            finalPrice = discountResult.finalPrice;
+          }
+        }
+        
+        // Purchase the course
+        await coursesAPI.purchaseCourse(course._id);
+        
+        // Show appropriate notification
+        if (discountApplied) {
+          showNotification(
+            `Course '${course.title}' purchased successfully with a ${discountStatus.nextCourseDiscount}% discount! You paid $${finalPrice.toFixed(2)} instead of $${course.price.toFixed(2)}`, 
+            'achievement'
+          );
+        } else {
+          showNotification(`Course '${course.title}' purchased successfully!`, 'achievement');
+        }
+        
+        // Refresh purchased courses
+        const purchasedCoursesData = await coursesAPI.getPurchasedCourses();
+        setPurchasedCourses(purchasedCoursesData);
+      } catch (error) {
+        console.error('Error purchasing course:', error);
+        showNotification('Failed to purchase course. Please try again.', 'download');
+      } finally {
+        setActionInProgress(false);
+      }
+    } else {
+      showNotification('You need to be online to purchase courses', 'download');
+    }
+  };
+  
   const handleDownload = async (course) => {
     if (isOnline) {
       setActionInProgress(true);
       await downloadCourse(course);
       setActionInProgress(false);
     } else {
-      alert('You need to be online to download new courses');
+      showNotification('You need to be online to download new courses', 'download');
     }
   };
   
@@ -51,14 +129,22 @@ const Courses = () => {
   const isDownloaded = (courseId) => {
     return offlineCourses.some(course => course._id === courseId);
   };
+  
+  const isPurchased = (courseId) => {
+    return purchasedCourses.some(course => course._id === courseId);
+  };
 
   return (
     <div className="courses-page">
+      <DiscountBanner />
       <h1>Available Courses</h1>
       
       {!isOnline && (
         <div className="card">
           <p><strong>You are currently offline.</strong> Only downloaded courses will be available.</p>
+          {offlineCourses.length === 0 && (
+            <p className="error-message">No courses have been downloaded for offline use. Connect to the internet to download courses.</p>
+          )}
         </div>
       )}
       
@@ -73,13 +159,30 @@ const Courses = () => {
               {isDownloaded(course._id) && <div className="downloaded-badge">Available Offline</div>}
               <img src={course.image || `https://via.placeholder.com/300x160?text=${encodeURIComponent(course.title)}`} alt={course.title} className="course-image" />
               <h3>{course.title}</h3>
+              <div className="course-price">${course.price || 0}</div>
               <p>{course.description}</p>
               <p><strong>{course.lessons?.length || 0} Lessons</strong></p>
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
                 <Link to={`/courses/${course._id}`} className="btn btn-primary">
                   {isDownloaded(course._id) ? 'Continue Learning' : 'View Course'}
                 </Link>
-                {!isDownloaded(course._id) ? (
+                
+                {!isPurchased(course._id) ? (
+                  <div className="purchase-container">
+                    <button 
+                      className="purchase-btn" 
+                      onClick={() => handlePurchase(course)}
+                      disabled={!isOnline || actionInProgress}
+                    >
+                      {actionInProgress ? 'Processing...' : 'Purchase'}
+                    </button>
+                    {discountStatus.nextCourseDiscount > 0 && (
+                      <div className="discount-badge">
+                        {discountStatus.nextCourseDiscount}% OFF
+                      </div>
+                    )}
+                  </div>
+                ) : !isDownloaded(course._id) ? (
                   <button 
                     className="download-btn" 
                     onClick={() => handleDownload(course)}

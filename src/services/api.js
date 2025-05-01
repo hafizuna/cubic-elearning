@@ -50,6 +50,10 @@ export const coursesAPI = {
     const response = await api.get(`/courses/${courseId}`);
     return response.data;
   },
+  purchaseCourse: async (courseId) => {
+    const response = await api.post(`/courses/${courseId}/purchase`);
+    return response.data;
+  },
   downloadCourse: async (courseId) => {
     const response = await api.post(`/courses/${courseId}/download`);
     return response.data;
@@ -60,6 +64,10 @@ export const coursesAPI = {
   },
   getDownloadedCourses: async () => {
     const response = await api.get('/courses/user/downloaded');
+    return response.data;
+  },
+  getPurchasedCourses: async () => {
+    const response = await api.get('/courses/user/purchased');
     return response.data;
   }
 };
@@ -187,6 +195,39 @@ export const adminAPI = {
   },
   deleteLesson: async (courseId, lessonId) => {
     const response = await api.delete(`/admin/courses/${courseId}/lessons/${lessonId}`);
+    return response.data;
+  }
+};
+
+// Discount API calls
+export const discountAPI = {
+  // Get user's discount status
+  getDiscountStatus: async () => {
+    const response = await api.get('/api/discounts/status');
+    return response.data;
+  },
+  
+  // Initialize discount for a course
+  initializeDiscount: async (courseId) => {
+    const response = await api.post(`/api/discounts/initialize/${courseId}`);
+    return response.data;
+  },
+  
+  // Check consistency and update discount
+  checkConsistency: async (courseId) => {
+    const response = await api.post(`/api/discounts/check/${courseId}`);
+    return response.data;
+  },
+  
+  // Complete course and finalize discount
+  completeCourse: async (courseId) => {
+    const response = await api.post(`/api/discounts/complete/${courseId}`);
+    return response.data;
+  },
+  
+  // Apply discount to a course purchase
+  applyDiscount: async (courseId) => {
+    const response = await api.post(`/api/discounts/apply/${courseId}`);
     return response.data;
   }
 };

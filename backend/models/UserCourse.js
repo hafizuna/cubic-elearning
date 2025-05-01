@@ -27,6 +27,22 @@ const UserCourseSchema = new mongoose.Schema({
     type: Number,
     default: 0  // Percentage of completion
   },
+  startingDiscount: {
+    type: Number,
+    default: 30  // Initial discount percentage
+  },
+  currentDiscount: {
+    type: Number,
+    default: 30  // Current discount percentage (decreases with inconsistency)
+  },
+  missedDays: {
+    type: Number,
+    default: 0  // Count of days without activity
+  },
+  lastConsistencyCheck: {
+    type: Date,
+    default: Date.now
+  },
   createdAt: {
     type: Date,
     default: Date.now

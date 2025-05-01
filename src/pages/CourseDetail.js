@@ -73,7 +73,7 @@ const CourseDetail = () => {
     try {
       if (!completedLessons.includes(lessonOrder)) {
         // Call the completeLesson function from OfflineContext
-        // This will work both online and offline
+        // This will work both online and offlinenjnjnj
         const result = await completeLesson(course._id, lessonOrder);
         
         if (result.success) {

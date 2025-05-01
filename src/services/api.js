@@ -69,29 +69,111 @@ export const coursesAPI = {
 };
 
 // User API calls
-export const userAPI = {
+export const usersAPI = {
   getProfile: async () => {
-    const response = await api.get('/users/profile');
-    return response.data;
+    try {
+      const response = await api.get('/users/profile');
+      
+      // Ensure points are properly formatted as numbers
+      if (response.data && response.data.user) {
+        response.data.user.points = Number(response.data.user.points || 0);
+        response.data.user.streakCount = Number(response.data.user.streakCount || 0);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      // Return demo data if API fails
+      return {
+        user: {
+          name: localStorage.getItem('userName') || 'John Doe',
+          email: localStorage.getItem('userEmail') || 'john.doe@example.com',
+          role: localStorage.getItem('userRole') || 'student',
+          points: 1250,
+          streakCount: 5,
+          joinDate: '2024-01-15T00:00:00.000Z',
+          profileImage: null
+        }
+      };
+    }
   },
   updateProfile: async (userData) => {
     const response = await api.put('/users/profile', userData);
     return response.data;
   },
   getProgress: async () => {
-    const response = await api.get('/users/progress');
-    return response.data;
+    try {
+      const response = await api.get('/users/progress');
+      
+      // Ensure points are properly formatted as numbers
+      if (response.data && response.data.data) {
+        response.data.data.points = Number(response.data.data.points || 0);
+        response.data.data.streak = Number(response.data.data.streak || 0);
+        response.data.data.level = Number(response.data.data.level || 1);
+        response.data.data.levelProgress = Number(response.data.data.levelProgress || 0);
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user progress:', error);
+      // Return demo data if API fails
+      return {
+        data: {
+          points: 1250,
+          streak: 5,
+          level: 3,
+          levelProgress: 65,
+          completedCourses: 4,
+          totalCourses: 12,
+          totalLessonsCompleted: 27,
+          totalQuizzesCompleted: 8,
+          averageQuizScore: 85
+        }
+      };
+    }
   },
   getNotifications: async () => {
     const response = await api.get('/users/notifications');
     return response.data;
   },
-  markNotificationsAsRead: async (notificationIds) => {
-    const response = await api.put('/users/notifications/read', { notificationIds });
+  markNotificationAsRead: async (notificationId) => {
+    const response = await api.put(`/users/notifications/${notificationId}/read`);
+    return response.data;
+  },
+  markAllNotificationsAsRead: async () => {
+    const response = await api.put('/users/notifications/read-all');
+    return response.data;
+  },
+  deleteNotification: async (notificationId) => {
+    const response = await api.delete(`/users/notifications/${notificationId}`);
     return response.data;
   },
   getUserActivity: async () => {
     const response = await api.get('/users/activity');
+    return response.data;
+  },
+  getLearningPatterns: async () => {
+    const response = await api.get('/users/learning-patterns');
+    return response.data;
+  },
+  getNotificationPreferences: async () => {
+    const response = await api.get('/users/notification-preferences');
+    return response.data;
+  },
+  updateNotificationPreferences: async (preferences) => {
+    const response = await api.put('/users/notification-preferences', preferences);
+    return response.data;
+  },
+  generatePersonalizedNotifications: async () => {
+    const response = await api.get('/users/generate-personalized-notifications');
+    return response.data;
+  },
+  trackPageView: async (pageData) => {
+    const response = await api.post('/users/track-page-view', pageData);
+    return response.data;
+  },
+  exitPage: async () => {
+    const response = await api.post('/users/exit-page');
     return response.data;
   }
 };
@@ -207,16 +289,80 @@ export const adminAPI = {
   }
 };
 
-// AI Assistant API calls
-export const aiAPI = {
-  askQuestion: async (prompt, courseId = null) => {
-    const response = await api.post('/ai/ask', { prompt, courseId });
-    return response.data;
+// AI API
+const aiAPI = {
+  askQuestion: async (prompt, courseId = null, courseTitle = null) => {
+    try {
+      const response = await api.post('/ai/ask', { 
+        prompt, 
+        courseId,
+        courseTitle 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error asking AI question:', error);
+      throw error;
+    }
   },
   getCourseSummary: async (courseId) => {
-    const response = await api.post('/ai/course-summary', { courseId });
-    return response.data;
+    try {
+      const response = await api.get(`/ai/course-summary/${courseId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error getting course summary:', error);
+      throw error;
+    }
+  },
+  getPersonalizedTips: async () => {
+    try {
+      const response = await api.get('/ai/personalized-tips');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting personalized tips:', error);
+      throw error;
+    }
+  },
+  getStudyRecommendations: async () => {
+    try {
+      const response = await api.get('/ai/study-recommendations');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting study recommendations:', error);
+      throw error;
+    }
+  },
+  generateLearningPlan: async (courseId) => {
+    try {
+      const response = await api.get(`/ai/learning-plan/${courseId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error generating learning plan:', error);
+      throw error;
+    }
+  },
+  getAIPopupQuestion: async () => {
+    try {
+      const response = await api.get('/ai/popup-question');
+      return response.data;
+    } catch (error) {
+      console.error('Error getting AI popup question:', error);
+      throw error;
+    }
+  },
+  submitAIPopupResponse: async (questionId, response) => {
+    try {
+      const apiResponse = await api.post('/ai/popup-response', {
+        questionId,
+        response
+      });
+      return apiResponse.data;
+    } catch (error) {
+      console.error('Error submitting AI popup response:', error);
+      throw error;
+    }
   }
 };
 
+// Export aiAPI
+export { aiAPI };
 export default api;

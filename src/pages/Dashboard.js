@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { userAPI } from '../services/api';
+import { usersAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import AuthContext from '../context/AuthContext';
 import UserActivity from '../components/UserActivity';
@@ -23,13 +23,13 @@ const Dashboard = () => {
         
         // Fetch user profile for streak and points
         if (currentUser) {
-          const profileData = await userAPI.getProfile();
+          const profileData = await usersAPI.getProfile();
           setStreakCount(profileData.user.streakCount);
           setPoints(profileData.user.points);
         }
         
         // Fetch user progress
-        const progressData = await userAPI.getProgress();
+        const progressData = await usersAPI.getProgress();
         setUserProgress(progressData);
       } catch (error) {
         console.error('Error fetching user data:', error);

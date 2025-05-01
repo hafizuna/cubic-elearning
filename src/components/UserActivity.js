@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { userAPI } from '../services/api';
+import { usersAPI } from '../services/api';
 import AuthContext from '../context/AuthContext';
 import OfflineContext from '../context/OfflineContext';
 
@@ -24,7 +24,7 @@ const UserActivity = () => {
       setLoading(true);
       setError(null);
       
-      const response = await userAPI.getUserActivity();
+      const response = await usersAPI.getUserActivity();
       setActivityData(response);
     } catch (error) {
       console.error('Error fetching user activity:', error);

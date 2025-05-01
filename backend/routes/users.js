@@ -167,39 +167,312 @@ router.put('/notifications/read', auth, async (req, res) => {
 });
 
 // @route   GET /api/users/activity
-// @desc    Get user's login activity and session history
+// @desc    Get user activity data
 // @access  Private
 router.get('/activity', auth, async (req, res) => {
   try {
-    // Find user data
     const userData = await UserData.findOne({ user: req.user._id });
     
     if (!userData) {
-      return res.json({
-        lastLogin: null,
-        previousLogin: null,
-        loginHistory: [],
-        totalSessions: 0,
-        averageSessionDuration: 0
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Format the response to include only necessary data
+    const activityData = {
+      loginHistory: userData.loginHistory,
+      learningPatterns: userData.learningPatterns || {},
+      courseEngagement: userData.courseEngagement || [],
+      pageViewsCount: userData.pageViews ? userData.pageViews.length : 0,
+      lastLogin: userData.lastLogin,
+      previousLogin: userData.previousLogin
+    };
+    
+    res.json(activityData);
+  } catch (error) {
+    console.error('Error getting user activity:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/notifications
+// @desc    Get user notifications
+// @access  Private
+router.get('/notifications', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id })
+      .populate('notifications.relatedCourse', 'title thumbnail');
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Sort notifications by date (newest first) and limit to 50
+    const notifications = userData.notifications
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 50);
+    
+    res.json(notifications);
+  } catch (error) {
+    console.error('Error getting notifications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/users/notifications/:id/read
+// @desc    Mark a notification as read
+// @access  Private
+router.put('/notifications/:id/read', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Find the notification by ID
+    const notification = userData.notifications.id(req.params.id);
+    
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    
+    // Mark as read
+    notification.read = true;
+    await userData.save();
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/users/notifications/read-all
+// @desc    Mark all notifications as read
+// @access  Private
+router.put('/notifications/read-all', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Mark all as read
+    userData.notifications.forEach(notification => {
+      notification.read = true;
+    });
+    
+    await userData.save();
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/users/notifications/:id
+// @desc    Delete a notification
+// @access  Private
+router.delete('/notifications/:id', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Find and remove the notification
+    const notification = userData.notifications.id(req.params.id);
+    
+    if (!notification) {
+      return res.status(404).json({ message: 'Notification not found' });
+    }
+    
+    notification.remove();
+    await userData.save();
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/notification-preferences
+// @desc    Get user notification preferences
+// @access  Private
+router.get('/notification-preferences', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Return notification preferences or default values
+    const preferences = userData.notificationPreferences || {
+      email: {
+        enabled: true,
+        frequency: 'daily'
+      },
+      inApp: {
+        enabled: true,
+        types: {
+          achievement: true,
+          courseCompletion: true,
+          inactivity: true,
+          recommendation: true,
+          streak: true
+        }
+      }
+    };
+    
+    res.json(preferences);
+  } catch (error) {
+    console.error('Error getting notification preferences:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/users/notification-preferences
+// @desc    Update user notification preferences
+// @access  Private
+router.put('/notification-preferences', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Update preferences
+    userData.notificationPreferences = req.body;
+    await userData.save();
+    
+    res.json({ success: true, preferences: userData.notificationPreferences });
+  } catch (error) {
+    console.error('Error updating notification preferences:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/learning-patterns
+// @desc    Get user learning patterns
+// @access  Private
+router.get('/learning-patterns', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      return res.status(404).json({ message: 'User data not found' });
+    }
+    
+    // Return learning patterns or default values
+    const learningPatterns = userData.learningPatterns || {
+      preferredStudyTime: 'unknown',
+      averageSessionDuration: 0,
+      mostActiveDay: 'unknown',
+      consistencyScore: 0,
+      lastCalculated: null
+    };
+    
+    res.json(learningPatterns);
+  } catch (error) {
+    console.error('Error getting learning patterns:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   GET /api/users/generate-personalized-notifications
+// @desc    Generate personalized notifications for the user
+// @access  Private
+router.get('/generate-personalized-notifications', auth, async (req, res) => {
+  try {
+    const NotificationService = require('../services/notificationService');
+    const notifications = await NotificationService.generatePersonalizedNotifications(req.user._id);
+    
+    res.json({ 
+      success: true, 
+      message: `Generated ${notifications.length} personalized notifications`,
+      count: notifications.length
+    });
+  } catch (error) {
+    console.error('Error generating personalized notifications:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/users/track-page-view
+// @desc    Track a page view
+// @access  Private
+router.post('/track-page-view', auth, async (req, res) => {
+  try {
+    const { page, courseId, timeSpent } = req.body;
+    
+    if (!page) {
+      return res.status(400).json({ message: 'Page is required' });
+    }
+    
+    let userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData) {
+      userData = new UserData({
+        user: req.user._id,
+        lastLogin: Date.now(),
+        pageViews: []
       });
     }
     
-    // Calculate average session duration
-    const completedSessions = userData.loginHistory.filter(session => session.logoutTime);
-    const totalDuration = completedSessions.reduce((sum, session) => sum + session.sessionDuration, 0);
-    const averageSessionDuration = completedSessions.length > 0 
-      ? Math.floor(totalDuration / completedSessions.length) 
-      : 0;
+    // Close any open page views
+    if (userData.pageViews && userData.pageViews.length > 0) {
+      const lastPageView = userData.pageViews[userData.pageViews.length - 1];
+      if (lastPageView && !lastPageView.exitedAt) {
+        lastPageView.exitedAt = new Date();
+        lastPageView.timeSpent = Math.floor((lastPageView.exitedAt - lastPageView.enteredAt) / 1000);
+      }
+    }
     
-    res.json({
-      lastLogin: userData.lastLogin,
-      previousLogin: userData.previousLogin,
-      loginHistory: userData.loginHistory.sort((a, b) => new Date(b.loginTime) - new Date(a.loginTime)),
-      totalSessions: userData.loginHistory.length,
-      averageSessionDuration
+    // Add new page view
+    userData.pageViews.push({
+      page,
+      course: courseId || null,
+      enteredAt: new Date()
     });
+    
+    await userData.save();
+    
+    res.json({ success: true });
   } catch (error) {
-    console.error('Get activity error:', error);
+    console.error('Error tracking page view:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route   POST /api/users/exit-page
+// @desc    Track when a user exits a page
+// @access  Private
+router.post('/exit-page', auth, async (req, res) => {
+  try {
+    const userData = await UserData.findOne({ user: req.user._id });
+    
+    if (!userData || !userData.pageViews || userData.pageViews.length === 0) {
+      return res.status(404).json({ message: 'No active page view found' });
+    }
+    
+    // Close the last page view
+    const lastPageView = userData.pageViews[userData.pageViews.length - 1];
+    if (!lastPageView.exitedAt) {
+      lastPageView.exitedAt = new Date();
+      lastPageView.timeSpent = Math.floor((lastPageView.exitedAt - lastPageView.enteredAt) / 1000);
+      
+      await userData.save();
+    }
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error tracking page exit:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

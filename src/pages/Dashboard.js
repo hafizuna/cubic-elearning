@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { userAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import AuthContext from '../context/AuthContext';
+import UserActivity from '../components/UserActivity';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -94,6 +95,11 @@ const Dashboard = () => {
             <Link to="/courses" className="btn btn-primary">Browse Courses</Link>
           </div>
         )}
+      </div>
+      
+      {/* User Activity Card */}
+      <div className="card">
+        <UserActivity />
       </div>
       
       <div className="card">

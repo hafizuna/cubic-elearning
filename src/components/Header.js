@@ -2,12 +2,18 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import AuthContext from '../context/AuthContext';
 import { showNotification } from './NotificationManager';
+import Notifications from './Notifications';
 
 const Header = ({ streakCount, points }) => {
   const { currentUser, logout } = useContext(AuthContext);
   
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    try {
+      // Call the logout API endpoint
+      await logout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
   
   return (
@@ -37,6 +43,7 @@ const Header = ({ streakCount, points }) => {
         </div>
         
         <div className="user-menu">
+          <Notifications />
           <div className="user-info">
             <span className="user-name">Hi, {currentUser?.name}</span>
             {currentUser?.role === 'admin' && (

@@ -30,12 +30,14 @@ const authRoutes = require('./routes/auth');
 const courseRoutes = require('./routes/courses');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
+const aiRoutes = require('./routes/ai');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Root route
 app.get('/', (req, res) => {

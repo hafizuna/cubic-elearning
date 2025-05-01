@@ -37,6 +37,10 @@ export const authAPI = {
   getUser: async () => {
     const response = await api.get('/auth/user');
     return response.data;
+  },
+  logout: async () => {
+    const response = await api.post('/auth/logout');
+    return response.data;
   }
 };
 
@@ -76,6 +80,18 @@ export const userAPI = {
   },
   getProgress: async () => {
     const response = await api.get('/users/progress');
+    return response.data;
+  },
+  getNotifications: async () => {
+    const response = await api.get('/users/notifications');
+    return response.data;
+  },
+  markNotificationsAsRead: async (notificationIds) => {
+    const response = await api.put('/users/notifications/read', { notificationIds });
+    return response.data;
+  },
+  getUserActivity: async () => {
+    const response = await api.get('/users/activity');
     return response.data;
   }
 };
@@ -187,6 +203,18 @@ export const adminAPI = {
   },
   deleteLesson: async (courseId, lessonId) => {
     const response = await api.delete(`/admin/courses/${courseId}/lessons/${lessonId}`);
+    return response.data;
+  }
+};
+
+// AI Assistant API calls
+export const aiAPI = {
+  askQuestion: async (prompt, courseId = null) => {
+    const response = await api.post('/ai/ask', { prompt, courseId });
+    return response.data;
+  },
+  getCourseSummary: async (courseId) => {
+    const response = await api.post('/ai/course-summary', { courseId });
     return response.data;
   }
 };

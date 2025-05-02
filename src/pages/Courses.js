@@ -4,7 +4,6 @@ import { coursesAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import { DiscountContext } from '../context/DiscountContext';
 import { showNotification } from '../components/NotificationManager';
-import DiscountBanner from '../components/DiscountBanner';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
@@ -136,7 +135,6 @@ const Courses = () => {
 
   return (
     <div className="courses-page">
-      <DiscountBanner />
       <h1>Available Courses</h1>
       
       {!isOnline && (

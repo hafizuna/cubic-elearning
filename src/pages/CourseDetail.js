@@ -6,7 +6,6 @@ import OfflineContext from '../context/OfflineContext';
 import { DiscountContext } from '../context/DiscountContext';
 import { getVideo } from '../services/progressService';
 import DiscountMeter from '../components/DiscountMeter';
-import DiscountBanner from '../components/DiscountBanner';
 import '../components/DiscountMeter.css';
 
 const CourseDetail = () => {
@@ -135,9 +134,6 @@ const CourseDetail = () => {
   if (!course) {
     return <div className="error-message">Course not found</div>;
   }
-  
-  // Only show discount banner if the course is purchased
-  const showDiscountBanner = isPurchased;
   // Initialize discount when starting a course
   const handleStartCourse = async () => {
     if (isOnline && isPurchased) {
@@ -236,7 +232,6 @@ const CourseDetail = () => {
 
   return (
     <div className="course-detail">
-      {showDiscountBanner && <DiscountBanner />}
       <div className="course-header">
         <img src={course.image || `https://via.placeholder.com/300x160?text=${encodeURIComponent(course.title)}`} alt={course.title} />
         <div className="course-info">

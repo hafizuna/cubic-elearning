@@ -5,7 +5,6 @@ import './App.css';
 // Components
 import Header from './components/Header';
 import Footer from './components/Footer';
-import DiscountBanner from './components/DiscountBanner';
 import NetworkStatus from './components/NetworkStatus';
 import NotificationManager, { showNotification } from './components/NotificationManager';
 import AdminRoute from './components/AdminRoute';
@@ -134,7 +133,6 @@ function AppContent() {
           />
         )}
         <main className={`main-content ${!currentUser ? 'auth-main' : ''}`}>
-          {currentUser && <DiscountBanner />}
         <Routes>
           <Route path="/login" element={
             !currentUser ? <Login /> : <Navigate to="/" />

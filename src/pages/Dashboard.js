@@ -5,7 +5,6 @@ import OfflineContext from '../context/OfflineContext';
 import { AuthContext } from '../context/AuthContext';
 import { DiscountContext } from '../context/DiscountContext';
 import DiscountMeter from '../components/DiscountMeter';
-import DiscountBanner from '../components/DiscountBanner';
 import '../components/DiscountMeter.css';
 
 const Dashboard = () => {
@@ -50,7 +49,6 @@ const Dashboard = () => {
   
   return (
     <div className="dashboard">
-      <DiscountBanner />
       <h1>Your Learning Dashboard</h1>
       
       <div className="stats-container">
@@ -90,7 +88,7 @@ const Dashboard = () => {
         
         <div className="card stat-card">
           <div className="stat-value">{offlineCourses.length}</div>
-          <div className="stat-label">Offline Courses</div>
+          <div className="stat-label">Offline Coursesssss</div>
           <p>Courses available for offline learning</p>
         </div>
       </div>

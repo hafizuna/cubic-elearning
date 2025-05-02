@@ -30,6 +30,32 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    
+    <!-- Service Worker Update Handler -->
+    <script>
+      // Force service worker update when online
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          if (navigator.onLine) {
+            console.log('Online: Checking for service worker updates');
+            navigator.serviceWorker.ready.then(registration => {
+              // Check for updates
+              registration.update();
+            });
+          }
+
+          // Update UI when online status changes
+          window.addEventListener('online', function() {
+            console.log('Device is now online, checking for updates');
+            navigator.serviceWorker.ready.then(registration => {
+              registration.update();
+              // Reload the page to ensure fresh content
+              window.location.reload();
+            });
+          });
+        });
+      }
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.

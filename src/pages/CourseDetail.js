@@ -280,180 +280,24 @@ const CourseDetail = () => {
                   showNotification('Failed to purchase course. Please try again.', 'download');
                 }
               }}
+              disabled={!isOnline}
             >
               Purchase Course
             </button>
           )}
           
-          {isPurchased && (
-            <>
-              <div className="progress-info">
-                <p><strong>Progress: {progress}%</strong></p>
-                <div className="progress-container">
-                  <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-                </div>
-              </div>
-              
-              {/* Show discount meter if this is the active course */}
-              {discountStatus.hasActiveDiscount && 
-               discountStatus.activeCourseDiscount?.courseId === course._id && (
-                <div className="course-discount-meter">
-                  <DiscountMeter courseId={course._id} showDetails={false} />
-                  <button 
-                    className="btn btn-secondary btn-sm" 
-                    onClick={handleStartCourse}
-                  >
-                    Refresh Discount
-                  </button>
-                </div>
-              )}
-            </>
+          {!isOnline && !isAvailableOffline && (
+            <div className="offline-message">
+              <p>You are currently offline. This course is not available offline.</p>
+            </div>
           )}
           
           {isAvailableOffline && (
             <div className="badge badge-streak">Available Offline</div>
           )}
-    <div className="course-detail-page">
-      {/* Hero Section with Course Info */}
-      <div className="course-hero" style={{ 
-        backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url(${course.image || `https://via.placeholder.com/1200x400?text=${encodeURIComponent(course.title)}`})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
-      }}>
-        <div className="course-hero-content">
-          <h1 className="course-title">{course.title}</h1>
-          <p className="course-description">{course.description}</p>
-          
-          <div className="course-meta">
-            <div className="course-progress">
-              <div className="progress-label">
-                <span>Your Progress</span>
-                <span className="progress-percentage">{progress}%</span>
-              </div>
-              <div className="progress-container">
-                <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-              </div>
-            </div>
-            
-            <div className="course-badges">
-              {isAvailableOffline && (
-                <div className="badge badge-offline">
-                  <span className="badge-icon">📱</span>
-                  <span>Available Offline</span>
-                </div>
-              )}
-              
-              <div className="badge badge-lessons">
-                <span className="badge-icon">📚</span>
-                <span>{course.lessons ? course.lessons.length : 0} Lessons</span>
-              </div>
-              
-              {completedLessons.length > 0 && (
-                <div className="badge badge-completed">
-                  <span className="badge-icon">✅</span>
-                  <span>{completedLessons.length} Completed</span>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       </div>
       
-      <div className="course-content-container">
-        {/* Video Player Section (Left) */}
-        <div className="video-container">
-          {selectedLesson ? (
-            <>
-              <h2>{selectedLesson.title}</h2>
-              {!isPurchased ? (
-                <div className="purchase-required">
-                  <div className="video-error">
-                    <p>You need to purchase this course to access lesson content.</p>
-                    <button 
-                      className="purchase-btn" 
-                      onClick={async () => {
-                        try {
-                          await coursesAPI.purchaseCourse(course._id);
-                          showNotification(`Course '${course.title}' purchased successfully!`, 'achievement');
-                          setIsPurchased(true);
-                        } catch (error) {
-                          console.error('Error purchasing course:', error);
-                          showNotification('Failed to purchase course. Please try again.', 'download');
-                        }
-                      }}
-                      disabled={!isOnline}
-                    >
-                      Purchase Course
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <div className="video-container">
-                    {videoLoading ? (
-                      <div className="video-loading">
-                        <p>Loading video...</p>
-                      </div>
-                    ) : videoError ? (
-                      <div className="video-error">
-                        <p>{videoError}</p>
-                      </div>
-                    ) : activeVideoUrl ? (
-                      <video
-                        controls
-                        className="lesson-video"
-                        src={activeVideoUrl}
-                        poster={course.image}
-                      />
-                    ) : (
-                      <div className="video-placeholder">
-                        <img src={course.image} alt={course.title} />
-                        <div className="placeholder-text">
-                          <p>Select a lesson to start learning</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="lesson-content">
-                    <h3>Description</h3>
-                    <p>{selectedLesson.description}</p>
-                    
-                    {selectedLesson.content && (
-                      <div className="lesson-text-content">
-                        <h3>Content</h3>
-                        <p>{selectedLesson.content}</p>
-                      </div>
-                    )}
-                    
-                    {!completedLessons.includes(selectedLesson.order) && (
-                      <button 
-                        className="btn btn-primary"
-                        onClick={() => handleCompleteLesson(selectedLesson.order)}
-                        disabled={!isOnline}
-                      >
-                        Mark as Complete
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="select-lesson-prompt">
-              <h2>Select a lesson</h2>
-              <p>Please select a lesson from the list on the right to start learning.</p>
-              <img 
-                src={`https://via.placeholder.com/640x360?text=${encodeURIComponent('Select a lesson')}`} 
-                alt="Select a lesson" 
-              />
-            </div>
-          )}
-        </div>
-        
-        {/* Lessons List Section (Right) */}
-        <div className="lessons-sidebar">
-          <h2 className="sidebar-title">Course Lessons</h2>
-          {course.lessons && course.lessons.length > 0 ? (
       <div className="course-content-wrapper">
         <div className="course-content-container">
           {/* Video Player Section (Left) */}
@@ -588,21 +432,13 @@ const CourseDetail = () => {
                           </div>
                         </>
                       )}
-                  <div className="lesson-number">{index + 1}</div>
-                  <div className="lesson-info">
-                    <h3 className="lesson-title">{lesson.title}</h3>
-                    {lesson.duration && (
-                      <span className="lesson-duration">
-                        <span className="duration-icon">⏱️</span>
-                        <span>{Math.floor(lesson.duration / 60)}:{(lesson.duration % 60).toString().padStart(2, '0')}</span>
-                      </span>
+                    </div>
+                    {completedLessons.includes(index) && (
+                      <div className="lesson-status">
+                        <span className="status-icon completed-icon">✓</span>
+                      </div>
                     )}
                   </div>
-                  {completedLessons.includes(index) && (
-                    <div className="lesson-status">
-                      <span className="status-icon completed-icon">✓</span>
-                    </div>
-                  )}
                 </li>
               ))}
             </ul>

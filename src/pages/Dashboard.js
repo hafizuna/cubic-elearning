@@ -6,7 +6,6 @@ import { AuthContext } from '../context/AuthContext';
 import { DiscountContext } from '../context/DiscountContext';
 import DiscountMeter from '../components/DiscountMeter';
 import '../components/DiscountMeter.css';
-import AuthContext from '../context/AuthContext';
 import UserActivity from '../components/UserActivity';
 
 const Dashboard = () => {

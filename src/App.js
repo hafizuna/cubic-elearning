@@ -17,7 +17,6 @@ import CourseDetail from './pages/CourseDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
-import Profile from './pages/Profile';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';

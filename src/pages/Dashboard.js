@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
-import { userAPI } from '../services/api';
+import { usersAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import { AuthContext } from '../context/AuthContext';
 import { DiscountContext } from '../context/DiscountContext';
 import DiscountMeter from '../components/DiscountMeter';
 import '../components/DiscountMeter.css';
+import AuthContext from '../context/AuthContext';
+import UserActivity from '../components/UserActivity';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,7 @@ const Dashboard = () => {
         
         // Fetch user profile for streak and points
         if (currentUser) {
-          const profileData = await userAPI.getProfile();
+          const profileData = await usersAPI.getProfile();
           setStreakCount(profileData.user.streakCount);
           setPoints(profileData.user.points);
           
@@ -35,7 +37,7 @@ const Dashboard = () => {
         }
         
         // Fetch user progress
-        const progressData = await userAPI.getProgress();
+        const progressData = await usersAPI.getProgress();
         setUserProgress(progressData);
       } catch (error) {
         console.error('Error fetching user data:', error);
@@ -117,6 +119,11 @@ const Dashboard = () => {
             <Link to="/courses" className="btn btn-primary">Browse Courses</Link>
           </div>
         )}
+      </div>
+      
+      {/* User Activity Card */}
+      <div className="card">
+        <UserActivity />
       </div>
       
       <div className="card">

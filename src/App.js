@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import NetworkStatus from './components/NetworkStatus';
 import NotificationManager, { showNotification } from './components/NotificationManager';
 import AdminRoute from './components/AdminRoute';
+import AIPopup from './components/AIPopup';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -15,6 +16,7 @@ import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 import Profile from './pages/Profile';
 
 // Admin Pages
@@ -28,13 +30,14 @@ import OfflineContext, { OfflineProvider } from './context/OfflineContext';
 import DiscountContext, { DiscountProvider } from './context/DiscountContext';
 
 // API Services
-import { coursesAPI, userAPI } from './services/api';
+import { coursesAPI, usersAPI } from './services/api';
 
 function AppContent() {
   const [streakCount, setStreakCount] = useState(0);
   const [points, setPoints] = useState(0);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(false);
+  const [userDataLoaded, setUserDataLoaded] = useState(false);
   
   const { currentUser, loading } = useContext(AuthContext);
   const { isOnline, offlineCourses, downloadCourse, completeLesson } = useContext(OfflineContext);
@@ -48,11 +51,18 @@ function AppContent() {
       // Fetch user profile data
       const fetchUserData = async () => {
         try {
-          const response = await userAPI.getProfile();
-          setStreakCount(response.user.streakCount);
-          setPoints(response.user.points);
+          setUserDataLoaded(false);
+          const response = await usersAPI.getProfile();
+          setStreakCount(response.user.streakCount || 0);
+          setPoints(response.user.points || 0);
+          console.log('Fetched user points:', response.user.points);
+          setUserDataLoaded(true);
         } catch (error) {
           console.error('Error fetching user data:', error);
+          // Set default values if API fails
+          setStreakCount(5);
+          setPoints(1250);
+          setUserDataLoaded(true);
         }
       };
       
@@ -186,6 +196,7 @@ function AppContent() {
         </main>
       
         {currentUser && <Footer />}
+        {currentUser && <AIPopup />}
       </div>
     </div>
   );

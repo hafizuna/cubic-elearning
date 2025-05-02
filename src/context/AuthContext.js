@@ -90,10 +90,21 @@ export const AuthProvider = ({ children }) => {
   };
   
   // Logout function
-  const logout = () => {
-    localStorage.removeItem('token');
-    setCurrentUser(null);
-    showNotification('You have been logged out', 'points');
+  const logout = async () => {
+    try {
+      // Call the logout API endpoint to update session data
+      if (currentUser) {
+        await authAPI.logout();
+      }
+    } catch (error) {
+      console.error('Error during logout API call:', error);
+      // Continue with logout even if API call fails
+    } finally {
+      // Always clear local storage and state
+      localStorage.removeItem('token');
+      setCurrentUser(null);
+      showNotification('You have been logged out', 'points');
+    }
   };
   
   const value = {

@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const activityTracker = require('./middleware/activityTracker');
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use('/api', activityTracker);
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
@@ -31,13 +33,13 @@ const courseRoutes = require('./routes/courses');
 const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const discountRoutes = require('./routes/discounts');
+const aiRoutes = require('./routes/ai');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/discounts', discountRoutes);
 
 // Root route
 app.get('/', (req, res) => {

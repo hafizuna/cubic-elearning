@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Course = require('../models/Course');
 const UserCourse = require('../models/UserCourse');
+const UserData = require('../models/UserData');
 const auth = require('../middleware/auth');
 
 // @route   GET /api/courses
@@ -194,6 +195,51 @@ router.post('/:id/complete-lesson', auth, async (req, res) => {
       
       req.user.lastActive = Date.now();
       await req.user.save();
+      
+      // Create notifications for progress milestones
+      try {
+        let userData = await UserData.findOne({ user: req.user._id });
+        
+        if (!userData) {
+          userData = new UserData({
+            user: req.user._id,
+            lastLogin: Date.now(),
+            notifications: []
+          });
+        }
+        
+        // Add notification for completing a lesson
+        userData.notifications.push({
+          type: 'course_completion',
+          message: `You completed a lesson in "${course.title}"!`,
+          createdAt: Date.now(),
+          relatedCourse: course._id
+        });
+        
+        // Check if course is now 100% complete
+        if (userCourse.progress === 100) {
+          userData.notifications.push({
+            type: 'achievement',
+            message: `Congratulations! You've completed the entire "${course.title}" course!`,
+            createdAt: Date.now(),
+            relatedCourse: course._id
+          });
+        }
+        // Check for 50% milestone
+        else if (userCourse.progress === 50) {
+          userData.notifications.push({
+            type: 'achievement',
+            message: `You're halfway through the "${course.title}" course. Keep going!`,
+            createdAt: Date.now(),
+            relatedCourse: course._id
+          });
+        }
+        
+        await userData.save();
+      } catch (error) {
+        console.error('Error creating notifications:', error);
+        // Don't fail the main operation if notifications fail
+      }
     }
     
     res.json({

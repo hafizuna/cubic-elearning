@@ -34,9 +34,10 @@ const initializeDiscount = async (userId, courseId) => {
       });
     }
     
-    // Update user's active course
+    // Update user's active course and set next course discount
     await User.findByIdAndUpdate(userId, {
-      activeCourseId: courseId
+      activeCourseId: courseId,
+      nextCourseDiscount: 30 // Set the next course discount to 30%
     });
     
     return { success: true, message: 'Discount initialized successfully' };

@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const activityTracker = require('./middleware/activityTracker');
+const { checkAllUserConsistency } = require('./utils/scheduledTasks');
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +41,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/discounts', discountRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -51,3 +54,18 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+// Schedule daily consistency check for discounts
+// Run the check once at server startup
+setTimeout(() => {
+  checkAllUserConsistency()
+    .then(() => console.log('Initial consistency check completed'))
+    .catch(err => console.error('Error in initial consistency check:', err));
+}, 10000); // Wait 10 seconds after server start
+
+// Then schedule it to run every 24 hours
+setInterval(() => {
+  checkAllUserConsistency()
+    .then(() => console.log('Scheduled consistency check completed'))
+    .catch(err => console.error('Error in scheduled consistency check:', err));
+}, 24 * 60 * 60 * 1000); // 24 hours in milliseconds

@@ -4,13 +4,16 @@ import { coursesAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import { DiscountContext } from '../context/DiscountContext';
 import { showNotification } from '../components/NotificationManager';
+import DiscountPopup from '../components/DiscountPopup';
 
 const Courses = () => {
   const [courses, setCourses] = useState([]);
   const [purchasedCourses, setPurchasedCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+  const [showDiscountPopup, setShowDiscountPopup] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState(false);
+
   // Use the offline and discount contexts
   const { isOnline, offlineCourses, downloadCourse, removeOfflineCourse, isDownloading } = useContext(OfflineContext);
   const { discountStatus, applyDiscountToPurchase } = useContext(DiscountContext);
@@ -59,7 +62,6 @@ const Courses = () => {
 
     fetchData();
   }, [isOnline, offlineCourses]);
-  const [actionInProgress, setActionInProgress] = useState(false);
 
   const handlePurchase = async (course) => {
     if (isOnline) {
@@ -81,7 +83,7 @@ const Courses = () => {
         }
         
         // Purchase the course
-        await coursesAPI.purchaseCourse(course._id);
+        const purchaseResult = await coursesAPI.purchaseCourse(course._id);
         
         // Show appropriate notification
         if (discountApplied) {
@@ -90,7 +92,14 @@ const Courses = () => {
             'achievement'
           );
         } else {
-          showNotification(`Course '${course.title}' purchased successfully!`, 'achievement');
+          // Show a simple notification
+          showNotification(
+            `Course '${course.title}' purchased successfully!`, 
+            'achievement'
+          );
+          
+          // Show the discount popup instead of the second notification
+          setShowDiscountPopup(true);
         }
         
         // Refresh purchased courses
@@ -202,6 +211,13 @@ const Courses = () => {
         ))}
         </div>
       )}
+      
+      {/* Discount Popup */}
+      <DiscountPopup 
+        show={showDiscountPopup} 
+        onClose={() => setShowDiscountPopup(false)} 
+        discountAmount={30}
+      />
     </div>
   );
 };

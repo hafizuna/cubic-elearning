@@ -3,6 +3,7 @@ const router = express.Router();
 const Course = require('../models/Course');
 const UserCourse = require('../models/UserCourse');
 const UserData = require('../models/UserData');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
 // @route   GET /api/courses
@@ -48,11 +49,14 @@ router.post('/:id/purchase', auth, async (req, res) => {
     }
     
     // Check if user has already purchased this course
-    if (course.purchasedBy.includes(req.user._id)) {
+    if (course.purchasedBy && course.purchasedBy.includes(req.user._id)) {
       return res.status(400).json({ message: 'You have already purchased this course' });
     }
     
     // Add user to purchasedBy array
+    if (!course.purchasedBy) {
+      course.purchasedBy = [];
+    }
     course.purchasedBy.push(req.user._id);
     await course.save();
     
@@ -60,9 +64,43 @@ router.post('/:id/purchase', auth, async (req, res) => {
     req.user.points += 20;
     await req.user.save();
     
-    res.json({ message: 'Course purchased successfully', course });
+    // Initialize discount for this course
+    try {
+      // Create user course record
+      let userCourse = await UserCourse.findOne({ 
+        user: req.user._id, 
+        course: course._id 
+      });
+      
+      if (!userCourse) {
+        userCourse = new UserCourse({
+          user: req.user._id,
+          course: course._id,
+          startingDiscount: 30,
+          currentDiscount: 30,
+          lastConsistencyCheck: new Date()
+        });
+        await userCourse.save();
+      }
+      
+      // Initialize discount using the service
+      const discountService = require('../services/discountService');
+      await discountService.initializeDiscount(req.user._id, course._id);
+      
+      // Update user's active course
+      await User.findByIdAndUpdate(req.user._id, { activeCourseId: course._id });
+    } catch (discountError) {
+      console.error('Error initializing discount:', discountError);
+      // Don't fail the purchase if discount initialization fails
+    }
+    
+    res.json({ 
+      success: true, 
+      message: 'Course purchased successfully. You now have a 30% discount for your next course!',
+      course
+    });
   } catch (error) {
-    console.error('Purchase course error:', error);
+    console.error('Error purchasing course:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

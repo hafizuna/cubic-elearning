@@ -1,0 +1,101 @@
+.discount-banner {
+  background-color: #4a6cf7;
+  color: white;
+  padding: 15px;
+  margin: 0 0 20px 0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.discount-banner-content {
+  display: flex;
+  align-items: center;
+}
+
+.discount-badge {
+  background-color: white;
+  color: #4a6cf7;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin-right: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.discount-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.discount-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.discount-description {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.discount-details-button {
+  background-color: rgba(255,255,255,0.2);
+  padding: 8px 15px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.discount-details-button:hover {
+  background-color: rgba(255,255,255,0.3);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .discount-banner {
+    flex-direction: column;
+    padding: 15px 10px;
+  }
+  
+  .discount-banner-content {
+    margin-bottom: 15px;
+  }
+  
+  .discount-badge {
+    width: 50px;
+    height: 50px;
+    font-size: 1.2rem;
+  }
+  
+  .discount-title {
+    font-size: 1rem;
+  }
+  
+  .discount-description {
+    font-size: 0.8rem;
+  }
+}

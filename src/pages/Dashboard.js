@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { usersAPI } from '../services/api';
 import OfflineContext from '../context/OfflineContext';
 import { AuthContext } from '../context/AuthContext';
-import { DiscountContext } from '../context/DiscountContext';
 import DiscountMeter from '../components/DiscountMeter';
 import '../components/DiscountMeter.css';
+import DiscountBanner from '../components/DiscountBanner';
 import UserActivity from '../components/UserActivity';
 
 const Dashboard = () => {
@@ -17,7 +17,6 @@ const Dashboard = () => {
   // Use the offline, auth, and discount contexts
   const { offlineCourses } = useContext(OfflineContext);
   const { currentUser } = useContext(AuthContext);
-  const { discountStatus, fetchDiscountStatus } = useContext(DiscountContext);
   
   // Fetch user progress data from the API
   useEffect(() => {
@@ -30,9 +29,6 @@ const Dashboard = () => {
           const profileData = await usersAPI.getProfile();
           setStreakCount(profileData.user.streakCount);
           setPoints(profileData.user.points);
-          
-          // Refresh discount status
-          await fetchDiscountStatus();
         }
         
         // Fetch user progress
@@ -46,11 +42,13 @@ const Dashboard = () => {
     };
     
     fetchUserData();
-  }, [currentUser, fetchDiscountStatus]);
+  }, [currentUser]);
   
   return (
     <div className="dashboard">
       <h1>Your Learning Dashboard</h1>
+      
+      <DiscountBanner />
       
       <div className="stats-container">
         <div className="card stat-card">
@@ -70,26 +68,9 @@ const Dashboard = () => {
           </div>
         </div>
         
-        {/* Discount Card */}
-        <div className="card stat-card discount-card">
-          {discountStatus.loading ? (
-            <div className="loading">Loading discount info...</div>
-          ) : discountStatus.hasActiveDiscount ? (
-            <DiscountMeter courseId={discountStatus.activeCourseDiscount?.courseId} />
-          ) : discountStatus.nextCourseDiscount > 0 ? (
-            <DiscountMeter />
-          ) : (
-            <div className="discount-info">
-              <div className="stat-value">30%</div>
-              <div className="stat-label">Potential Discount</div>
-              <p className="discount-explainer">Start a course to earn up to 30% off your next purchase!</p>
-            </div>
-          )}
-        </div>
-        
         <div className="card stat-card">
           <div className="stat-value">{offlineCourses.length}</div>
-          <div className="stat-label">Offline Coursesssss</div>
+          <div className="stat-label">Offline Courses</div>
           <p>Courses available for offline learning</p>
         </div>
       </div>
@@ -148,7 +129,6 @@ const Dashboard = () => {
           )}
         </div>
       </div>
-      
       <Link to="/courses" className="btn btn-primary">Browse All Courses</Link>
     </div>
   );

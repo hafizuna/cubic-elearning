@@ -3,7 +3,7 @@ const UserData = require('../models/UserData');
 const UserCourse = require('../models/UserCourse');
 const User = require('../models/User');
 
-const GEMINI_API_KEY = 'AIzaSyAoyeA7HuzNHn8wbWAGf88E9yTFEMKKezQ';
+const GEMINI_API_KEY = 'AIzaSyD6FKiDF6AcG669bc68jNLdPS6MzEpCTBI';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
 /**

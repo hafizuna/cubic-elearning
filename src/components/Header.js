@@ -286,13 +286,10 @@ const Header = ({ streakCount: propStreakCount, points: propPoints }) => {
       <div className="header-content">
         <nav className="main-nav">
           <NavLink to="/" className={({isActive}) => isActive ? "nav-link active" : "nav-link"} end>
-            Home
+            Dashboard
           </NavLink>
           <NavLink to="/courses" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
             Courses
-          </NavLink>
-          <NavLink to="/dashboard" className={({isActive}) => isActive ? "nav-link active" : "nav-link"}>
-            Dashboard
           </NavLink>
           {currentUser && currentUser.role === 'admin' && (
             <NavLink to="/admin" className={({isActive}) => isActive ? "nav-link active admin-link" : "nav-link admin-link"}>

@@ -8,6 +8,7 @@ import { getVideo } from '../services/progressService';
 import DiscountMeter from '../components/DiscountMeter';
 import '../components/DiscountMeter.css';
 import AIAssistant from '../components/AIAssistant';
+import './CourseDetail.css';
 
 const CourseDetail = () => {
   const { id } = useParams();
@@ -127,6 +128,28 @@ const CourseDetail = () => {
     }
   };
   
+  // Function to handle opening Telegram bot
+  const handleOpenTelegramBot = () => {
+    // Construct the Telegram bot URL with the token
+    const botToken = '7550433515:AAGMGXVNOYst7msCozkf7deaCtesdoODbMM';
+    const botUsername = 'EduBoostdirebot'; // Updated to the correct bot username
+    
+    // Create a simple string parameter with just the course ID
+    // This is more reliable than passing a complex JSON object
+    const startParam = course._id;
+    
+    // Create the Telegram URL with the start parameter
+    const telegramUrl = `https://t.me/${botUsername}?start=${startParam}`;
+    
+    console.log('Opening Telegram bot with URL:', telegramUrl);
+    
+    // Open the URL in a new tab
+    window.open(telegramUrl, '_blank');
+    
+    // Show notification to the user
+    showNotification('Continuing your learning in Telegram!', 'achievement');
+  };
+
   if (loading) {
     return <div className="loading">Loading course...</div>;
   }
@@ -266,6 +289,15 @@ const CourseDetail = () => {
           <h1>{course.title}</h1>
           <p>{course.description}</p>
           <div className="course-price">${course.price || 0}</div>
+          
+          {/* Telegram Bot Button */}
+          <button 
+            className="telegram-btn" 
+            onClick={handleOpenTelegramBot}
+          >
+            <i className="telegram-icon"></i>
+            Continue Learning in Telegram
+          </button>
           
           {!isPurchased && isOnline && (
             <button 

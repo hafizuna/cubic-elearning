@@ -22,6 +22,10 @@ const LessonSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  telegramMessageId: {
+    type: Number,
+    default: null
+  },
   duration: {
     type: Number,
     default: 0 // Duration in seconds

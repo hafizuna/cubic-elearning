@@ -16,6 +16,8 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
+// Temporarily disable service worker registration to fix the error
+/*
 // Register service worker for offline support
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -28,3 +30,4 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+*/

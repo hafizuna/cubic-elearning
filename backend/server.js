@@ -4,6 +4,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const activityTracker = require('./middleware/activityTracker');
 const { checkAllUserConsistency } = require('./utils/scheduledTasks');
+const telegramBotService = require('./services/telegramBotService');
 
 // Load environment variables
 dotenv.config();
@@ -35,6 +36,7 @@ const userRoutes = require('./routes/users');
 const adminRoutes = require('./routes/admin');
 const discountRoutes = require('./routes/discounts');
 const aiRoutes = require('./routes/ai');
+const telegramRoutes = require('./routes/telegramRoutes');
 
 // Use routes
 app.use('/api/auth', authRoutes);
@@ -43,6 +45,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/discounts', discountRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 // Root route
 app.get('/', (req, res) => {
@@ -53,6 +56,30 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // For local development, use polling instead of webhooks
+  console.log('Starting Telegram bot in polling mode for local development...');
+  
+  // Start the Telegram bot polling immediately
+  telegramBotService.startPolling()
+    .then(() => console.log('Telegram bot polling started successfully'))
+    .catch(error => console.error('Failed to start Telegram bot polling:', error));
+  
+  // The webhook setup code is kept for reference but commented out
+  /*
+  // Set up Telegram webhook if we have a public URL
+  if (process.env.PUBLIC_URL) {
+    const webhookUrl = `${process.env.PUBLIC_URL}/api/telegram/webhook`;
+    console.log(`Setting up Telegram webhook at: ${webhookUrl}`);
+    
+    telegramBotService.setWebhook(webhookUrl)
+      .then(result => console.log('Telegram webhook set up successfully:', result))
+      .catch(error => console.error('Failed to set up Telegram webhook:', error));
+  } else {
+    console.log('No PUBLIC_URL environment variable found. Telegram webhook not set up.');
+    console.log('For local development, you can use a service like ngrok to create a public URL.');
+  }
+  */
 });
 
 // Schedule daily consistency check for discounts

@@ -38,7 +38,15 @@ const UserSchema = new mongoose.Schema({
     min: 0,
     max: 30
   },
-  activeCourseId: {
+  telegramChatId: {
+    type: String,
+    default: null
+  },
+  telegramUsername: {
+    type: String,
+    default: null
+  },
+  activeCourse: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Course',
     default: null
